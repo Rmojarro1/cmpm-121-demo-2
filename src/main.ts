@@ -20,6 +20,13 @@ const clearButton = document.createElement('button');
 clearButton.innerHTML = 'Clear';
 app.append(clearButton);
 
+interface Point{
+    x: number; 
+    y: number; 
+}
+
+let pointArray: Point[][] = []; 
+let currentStroke: Point[] = [];
 
  
 if (ctx) {
@@ -37,6 +44,7 @@ let drawX = 0;
 let drawY = 0;
 
 addEventListener('mousedown', (event) => {
+    currentStroke = []; 
     drawX = event.offsetX; 
     drawY = event.offsetY;
     isDrawing = true; 
@@ -44,18 +52,21 @@ addEventListener('mousedown', (event) => {
 
 addEventListener('mousemove', (event) => {
     if(isDrawing) {
-        drawLine(ctx, drawX, drawY, event.offsetX, event.offsetY); 
+        currentStroke.push({x: drawX, y: drawY});
         drawX = event.offsetX;
         drawY = event.offsetY;
+        drawingChanged(); 
     }
 });
 
-addEventListener('mouseup', (event) => {
+addEventListener('mouseup', () => {
     if(isDrawing){
-        drawLine(ctx, drawX, drawY, event.offsetX, event.offsetY); 
+        currentStroke.push({x: drawX, y: drawY}); 
+        pointArray.push(currentStroke);
         drawX = 0; 
         drawY = 0;
         isDrawing = false; 
+        drawingChanged(); 
     }
 });
 
@@ -63,7 +74,20 @@ clearButton.addEventListener('click', () => {
     ctx.clearRect(0, 0, 250, 250); 
     ctx.fillStyle = 'lightgrey';
     ctx.fillRect(0, 0, 250, 250); 
+    pointArray = []; 
+    drawingChanged(); 
 }); 
+
+function drawingChanged(){
+    ctx.clearRect(0, 0, 250, 250); 
+    ctx.fillStyle = 'lightgrey';
+    ctx.fillRect(0, 0, 250, 250); 
+    pointArray.forEach((stroke) => {
+        for(let i = 0; i < stroke.length - 1; i++){
+            drawLine(ctx, stroke[i].x, stroke[i].y, stroke[i+1].x, stroke[i+1].y); 
+        }
+    }); 
+}
 
 function drawLine(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2:number){
     ctx.beginPath(); 
