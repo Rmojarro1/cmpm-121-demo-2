@@ -4,7 +4,6 @@ const APP_NAME = "Raul's D2";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
 document.title = APP_NAME;
-//app.innerHTML = APP_NAME;
 
 const gameName = "Raul's D2";    
 
@@ -17,6 +16,11 @@ canvas.width = 256;
 canvas.height = 256; 
 const ctx = canvas.getContext('2d')!; 
 
+const clearButton = document.createElement('button');
+clearButton.innerHTML = 'Clear';
+app.append(clearButton);
+
+
  
 if (ctx) {
     ctx.shadowColor = 'grey'; 
@@ -26,4 +30,47 @@ if (ctx) {
 
     ctx.fillStyle = 'lightgrey';
     ctx.fillRect(0, 0, 250, 250); 
+}
+
+let isDrawing = false; 
+let drawX = 0; 
+let drawY = 0;
+
+addEventListener('mousedown', (event) => {
+    drawX = event.offsetX; 
+    drawY = event.offsetY;
+    isDrawing = true; 
+}); 
+
+addEventListener('mousemove', (event) => {
+    if(isDrawing) {
+        drawLine(ctx, drawX, drawY, event.offsetX, event.offsetY); 
+        drawX = event.offsetX;
+        drawY = event.offsetY;
+    }
+});
+
+addEventListener('mouseup', (event) => {
+    if(isDrawing){
+        drawLine(ctx, drawX, drawY, event.offsetX, event.offsetY); 
+        drawX = 0; 
+        drawY = 0;
+        isDrawing = false; 
+    }
+});
+
+clearButton.addEventListener('click', () => {
+    ctx.clearRect(0, 0, 250, 250); 
+    ctx.fillStyle = 'lightgrey';
+    ctx.fillRect(0, 0, 250, 250); 
+}); 
+
+function drawLine(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2:number){
+    ctx.beginPath(); 
+    ctx.strokeStyle = 'black'; 
+    ctx.lineWidth = 1; 
+    ctx.moveTo(x1, y1); 
+    ctx.lineTo(x2, y2); 
+    ctx.stroke(); 
+    ctx.closePath(); 
 }
