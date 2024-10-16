@@ -20,12 +20,21 @@ const clearButton = document.createElement('button');
 clearButton.innerHTML = 'Clear';
 app.append(clearButton);
 
+const undoButton = document.createElement('button');
+undoButton.innerHTML = 'Undo';
+app.append(undoButton);
+
+const redoButton = document.createElement('button');    
+redoButton.innerHTML = 'Redo';
+app.append(redoButton);
+
 interface Point{
     x: number; 
     y: number; 
 }
 
 let pointArray: Point[][] = []; 
+const redoArray: Point[][] = [];
 let currentStroke: Point[] = [];
 
  
@@ -43,14 +52,14 @@ let isDrawing = false;
 let drawX = 0; 
 let drawY = 0;
 
-addEventListener('mousedown', (event) => {
+canvas.addEventListener('mousedown', (event) => {
     currentStroke = []; 
     drawX = event.offsetX; 
     drawY = event.offsetY;
     isDrawing = true; 
 }); 
 
-addEventListener('mousemove', (event) => {
+canvas.addEventListener('mousemove', (event) => {
     if(isDrawing) {
         currentStroke.push({x: drawX, y: drawY});
         drawX = event.offsetX;
@@ -59,7 +68,7 @@ addEventListener('mousemove', (event) => {
     }
 });
 
-addEventListener('mouseup', () => {
+canvas.addEventListener('mouseup', () => {
     if(isDrawing){
         currentStroke.push({x: drawX, y: drawY}); 
         pointArray.push(currentStroke);
@@ -70,6 +79,15 @@ addEventListener('mouseup', () => {
     }
 });
 
+canvas.addEventListener('mouseleave', () => {
+    if (isDrawing) {
+        currentStroke.push({x: drawX, y: drawY});
+        pointArray.push(currentStroke);
+        isDrawing = false;
+        drawingChanged();
+    }
+});
+
 clearButton.addEventListener('click', () => {
     ctx.clearRect(0, 0, 250, 250); 
     ctx.fillStyle = 'lightgrey';
@@ -77,6 +95,21 @@ clearButton.addEventListener('click', () => {
     pointArray = []; 
     drawingChanged(); 
 }); 
+
+undoButton.addEventListener('click', () =>{
+    if(pointArray.length > 0){
+        const lastStroke = pointArray.pop()!; 
+        redoArray.push(lastStroke);
+        drawingChanged();
+    }
+})
+
+redoButton.addEventListener('click', () => {
+    if(redoArray.length > 0){
+        pointArray.push(redoArray.pop()!);
+        drawingChanged();
+    }
+})
 
 function drawingChanged(){
     ctx.clearRect(0, 0, 250, 250); 
