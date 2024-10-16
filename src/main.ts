@@ -33,9 +33,40 @@ interface Point{
     y: number; 
 }
 
-let pointArray: Point[][] = []; 
-const redoArray: Point[][] = [];
-let currentStroke: Point[] = [];
+interface Displayable{
+    display(context: CanvasRenderingContext2D): void;
+}
+
+interface MarkerLine extends Displayable{
+    drag(x: number, y: number): void; 
+}
+
+
+function createMarkerLine(initialX: number, initialY: number): MarkerLine {
+    const points: { x: number; y: number }[] = [{ x: initialX, y: initialY }];
+
+    return {
+        display(context: CanvasRenderingContext2D): void {
+            if (points.length < 2) return; 
+
+            context.beginPath(); 
+            context.moveTo(points[0].x, points[0].y);
+
+            for (let i = 1; i < points.length; i++) {
+                context.lineTo(points[i].x, points[i].y); 
+            }
+
+            context.stroke();
+        }, 
+        drag(x: number, y: number): void {
+            points.push({ x, y });
+        }
+    }; 
+}
+
+const displayList: Displayable[] = [];
+const redoList: Displayable[] = []; 
+let currentLine: MarkerLine | null = null;
 
  
 if (ctx) {
@@ -53,36 +84,34 @@ let drawX = 0;
 let drawY = 0;
 
 canvas.addEventListener('mousedown', (event) => {
-    currentStroke = []; 
     drawX = event.offsetX; 
     drawY = event.offsetY;
+    currentLine = createMarkerLine(drawX, drawY);
     isDrawing = true; 
 }); 
 
 canvas.addEventListener('mousemove', (event) => {
-    if(isDrawing) {
+    if(isDrawing && currentLine){ 
         const newX = event.offsetX;
         const newY = event.offsetY; 
-        drawLine(ctx, drawX, drawY, newX, newY);
-        currentStroke.push({x: drawX, y: drawY});
-        drawX = event.offsetX;
-        drawY = event.offsetY;
+        currentLine.drag(newX, newY);
+        drawingChanged();
     }
 });
 
 canvas.addEventListener('mouseup', () => {
-    if(isDrawing){ 
-        pointArray.push(currentStroke);
-        isDrawing = false; 
+    if(isDrawing && currentLine){ 
+        displayList.push(currentLine);
+        currentLine = null;
         drawingChanged(); 
     }
 });
 
 canvas.addEventListener('mouseleave', () => {
-    if (isDrawing) {
-        pointArray.push(currentStroke);
+    if (isDrawing && currentLine) {
+        displayList.push(currentLine);
+        currentLine = null;
         isDrawing = false;
-        drawingChanged();
     }
 });
 
@@ -90,42 +119,35 @@ clearButton.addEventListener('click', () => {
     ctx.clearRect(0, 0, 250, 250); 
     ctx.fillStyle = 'lightgrey';
     ctx.fillRect(0, 0, 250, 250); 
-    pointArray = []; 
+    displayList.length = 0;
     drawingChanged(); 
 }); 
 
 undoButton.addEventListener('click', () =>{
-    if(pointArray.length > 0){
-        const lastStroke = pointArray.pop()!; 
-        redoArray.push(lastStroke);
+    if(displayList.length > 0){
+        const lastLine = displayList.pop()!; 
+        redoList.push(lastLine);
         drawingChanged();
     }
-})
+}); 
 
 redoButton.addEventListener('click', () => {
-    if(redoArray.length > 0){
-        pointArray.push(redoArray.pop()!);
+    if(redoList.length > 0){
+        displayList.push(redoList.pop()!);
         drawingChanged();
     }
-})
+}); 
 
 function drawingChanged(){
     ctx.clearRect(0, 0, 250, 250); 
     ctx.fillStyle = 'lightgrey';
     ctx.fillRect(0, 0, 250, 250); 
-    pointArray.forEach((stroke) => {
-        for(let i = 0; i < stroke.length - 1; i++){
-            drawLine(ctx, stroke[i].x, stroke[i].y, stroke[i+1].x, stroke[i+1].y); 
-        }
-    }); 
+    displayList.forEach((line) => {
+        line.display(ctx)
+    });
+
+    if (currentLine) {
+        currentLine.display(ctx);
+    }
 }
 
-function drawLine(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2:number){
-    ctx.beginPath(); 
-    ctx.strokeStyle = 'black'; 
-    ctx.lineWidth = 1; 
-    ctx.moveTo(x1, y1); 
-    ctx.lineTo(x2, y2); 
-    ctx.stroke(); 
-    ctx.closePath(); 
-}
