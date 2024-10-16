@@ -61,19 +61,18 @@ canvas.addEventListener('mousedown', (event) => {
 
 canvas.addEventListener('mousemove', (event) => {
     if(isDrawing) {
+        const newX = event.offsetX;
+        const newY = event.offsetY; 
+        drawLine(ctx, drawX, drawY, newX, newY);
         currentStroke.push({x: drawX, y: drawY});
         drawX = event.offsetX;
         drawY = event.offsetY;
-        drawingChanged(); 
     }
 });
 
 canvas.addEventListener('mouseup', () => {
-    if(isDrawing){
-        currentStroke.push({x: drawX, y: drawY}); 
+    if(isDrawing){ 
         pointArray.push(currentStroke);
-        drawX = 0; 
-        drawY = 0;
         isDrawing = false; 
         drawingChanged(); 
     }
@@ -81,7 +80,6 @@ canvas.addEventListener('mouseup', () => {
 
 canvas.addEventListener('mouseleave', () => {
     if (isDrawing) {
-        currentStroke.push({x: drawX, y: drawY});
         pointArray.push(currentStroke);
         isDrawing = false;
         drawingChanged();
