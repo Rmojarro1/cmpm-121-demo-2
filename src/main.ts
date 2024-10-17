@@ -52,6 +52,12 @@ interface MarkerLine extends Displayable{
     lineWidth: number; 
 }
 
+function setCursor(cursor: string){
+    canvas.style.cursor = cursor; 
+}
+
+setCursor('crosshair');
+
 
 function createMarkerLine(initialX: number, initialY: number, isThin: boolean): MarkerLine {
     const points: { x: number; y: number }[] = [{ x: initialX, y: initialY }];
@@ -166,9 +172,11 @@ function drawingChanged(){
 
 thinButton.addEventListener('click', () => {
     isThin = true;
+    setCursor('crosshair');
 }); 
 
 thickButton.addEventListener('click', () => {
     isThin = false;
+    setCursor('pointer');
 }); 
 
