@@ -28,6 +28,16 @@ const redoButton = document.createElement('button');
 redoButton.innerHTML = 'Redo';
 app.append(redoButton);
 
+const thinButton = document.createElement('button');
+thinButton.innerHTML = 'Thin';
+app.append(thinButton);
+
+const thickButton = document.createElement('button');   
+thickButton.innerHTML = 'Thick';
+app.append(thickButton);
+
+let isThin = true; 
+
 interface Point{
     x: number; 
     y: number; 
@@ -39,16 +49,19 @@ interface Displayable{
 
 interface MarkerLine extends Displayable{
     drag(x: number, y: number): void; 
+    lineWidth: number; 
 }
 
 
-function createMarkerLine(initialX: number, initialY: number): MarkerLine {
+function createMarkerLine(initialX: number, initialY: number, isThin: boolean): MarkerLine {
     const points: { x: number; y: number }[] = [{ x: initialX, y: initialY }];
+    const lineWidth = isThin ? 1 : 5;
 
     return {
+        lineWidth, 
         display(context: CanvasRenderingContext2D): void {
             if (points.length < 2) return; 
-
+            context.lineWidth = this.lineWidth;
             context.beginPath(); 
             context.moveTo(points[0].x, points[0].y);
 
@@ -86,7 +99,7 @@ let drawY = 0;
 canvas.addEventListener('mousedown', (event) => {
     drawX = event.offsetX; 
     drawY = event.offsetY;
-    currentLine = createMarkerLine(drawX, drawY);
+    currentLine = createMarkerLine(drawX, drawY, isThin);
     isDrawing = true; 
 }); 
 
@@ -150,4 +163,12 @@ function drawingChanged(){
         currentLine.display(ctx);
     }
 }
+
+thinButton.addEventListener('click', () => {
+    isThin = true;
+}); 
+
+thickButton.addEventListener('click', () => {
+    isThin = false;
+}); 
 
