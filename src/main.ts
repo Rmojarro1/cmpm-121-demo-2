@@ -52,11 +52,11 @@ interface MarkerLine extends Displayable{
     lineWidth: number; 
 }
 
-function setCursor(cursor: string){
-    canvas.style.cursor = cursor; 
+function setCursor(cursorUrl: string): void{
+    canvas.style.cursor = `url(${cursorUrl}) 16 16, auto`; 
 }
 
-setCursor('crosshair');
+//setCursor('crosshair');
 
 
 function createMarkerLine(initialX: number, initialY: number, isThin: boolean): MarkerLine {
@@ -172,11 +172,11 @@ function drawingChanged(){
 
 thinButton.addEventListener('click', () => {
     isThin = true;
-    setCursor('crosshair');
+    setCursor('src/smallCircle.png');
 }); 
 
 thickButton.addEventListener('click', () => {
     isThin = false;
-    setCursor('pointer');
+    setCursor('/src/circle.png');
 }); 
 

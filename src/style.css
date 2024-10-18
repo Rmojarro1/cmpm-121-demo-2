@@ -85,6 +85,7 @@ canvas{
   border: 1px solid black;
   border-radius: 15px;
   outline: solid black;
+  cursor: url('SmallCircle.png') 16 16, auto; 
 }
 
 @media (prefers-color-scheme: light) {
