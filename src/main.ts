@@ -1,8 +1,8 @@
 import "./style.css";
 
 const APP_NAME = "Raul's D2";
-const app = document.querySelector<HTMLDivElement>("#app")!;
 
+const app = document.querySelector<HTMLDivElement>("#app")!;
 document.title = APP_NAME;
 
 const gameName = "Raul's D2";
@@ -36,6 +36,19 @@ const thickButton = document.createElement('button');
 thickButton.innerHTML = 'Thick';
 app.append(thickButton);
 
+const stickerContainer = document.createElement('div');
+app.append(stickerContainer);
+
+const stickers = ['😀', '🌟', '🍉'];
+stickers.forEach((sticker) => {
+    const button = document.createElement('button');
+    button.innerHTML = sticker;
+    button.addEventListener('click', () => {
+        selectSticker(sticker);
+    });
+    stickerContainer.append(button);
+});
+
 let isThin = true;
 
 interface Point {
@@ -52,35 +65,65 @@ interface MarkerLine extends Displayable {
     lineWidth: number;
 }
 
-interface Positional extends Displayable {
+interface Sticker extends Displayable {
     updatePosition(x: number, y: number): void;
+    sticker: string;
 }
 
-function createToolPreview(isThin: boolean): Positional {
+function createToolPreview(isThin: boolean): Sticker {
     let x = 0;
     let y = 0;
 
-    const lineWidth = isThin ? 1 : 5;
-    const radius = isThin ? 5 : 12.5;
-
     return {
+        sticker: '',
         updatePosition(newX: number, newY: number) {
             x = newX;
             y = newY;
         },
         display(ctx: CanvasRenderingContext2D) {
             ctx.save();
-            ctx.strokeStyle = 'gray';
-            ctx.lineWidth = lineWidth;
+            ctx.globalAlpha = 0.5;  // Optional transparency for previews
+            ctx.fillStyle = 'gray';
             ctx.beginPath();
+            const radius = isThin ? 3 : 8;  // Small circle for thin, larger circle for thick
             ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.stroke();
+            ctx.fill();
             ctx.restore();
         }
     };
 }
 
-let toolPreview: Positional | null = createToolPreview(isThin);
+function createStickerCommand(sticker: string, initialX: number, initialY: number): Sticker {
+    let x = initialX;
+    let y = initialY;
+
+    return {
+        sticker,
+        updatePosition(newX: number, newY: number) {
+            x = newX;
+            y = newY;
+            drawingChanged();
+        },
+        display(ctx: CanvasRenderingContext2D) {
+            ctx.save();
+            ctx.font = "24px Arial";
+            ctx.fillText(sticker, x, y);
+            ctx.restore();
+        }
+    };
+}
+
+let currentSticker: Sticker | null = null;
+let stickerPlacement: Sticker | null = null;
+
+function selectSticker(sticker: string) {
+    currentSticker = createStickerCommand(sticker, 0, 0);
+    toolPreview = null;  
+    if (!isDrawing) drawingChanged();
+
+    const toolMovedEvent = new Event('tool-moved');
+    canvas.dispatchEvent(toolMovedEvent);
+}
 
 function createMarkerLine(initialX: number, initialY: number, isThin: boolean): MarkerLine {
     const points: { x: number; y: number }[] = [{ x: initialX, y: initialY }];
@@ -109,6 +152,7 @@ function createMarkerLine(initialX: number, initialY: number, isThin: boolean): 
 const displayList: Displayable[] = [];
 const redoList: Displayable[] = [];
 let currentLine: MarkerLine | null = null;
+let toolPreview: Sticker | null = createToolPreview(isThin);
 
 if (ctx) {
     ctx.shadowColor = 'grey';
@@ -123,11 +167,16 @@ if (ctx) {
 let isDrawing = false;
 
 canvas.addEventListener('mousedown', (event) => {
-    const drawX = event.offsetX;
-    const drawY = event.offsetY;
-    currentLine = createMarkerLine(drawX, drawY, isThin);
-    isDrawing = true;
-    toolPreview = null; 
+    if (currentSticker) {
+        stickerPlacement = createStickerCommand(currentSticker.sticker, event.offsetX, event.offsetY);
+        displayList.push(stickerPlacement);
+        drawingChanged();
+    } else {
+        const drawX = event.offsetX;
+        const drawY = event.offsetY;
+        currentLine = createMarkerLine(drawX, drawY, isThin);
+        isDrawing = true;
+    }
 });
 
 canvas.addEventListener('mousemove', (event) => {
@@ -135,6 +184,9 @@ canvas.addEventListener('mousemove', (event) => {
         const newX = event.offsetX;
         const newY = event.offsetY;
         currentLine.drag(newX, newY);
+        drawingChanged();
+    } else if (currentSticker) {
+        currentSticker.updatePosition(event.offsetX, event.offsetY);
         drawingChanged();
     } else if (toolPreview) {
         toolPreview.updatePosition(event.offsetX, event.offsetY);
@@ -148,7 +200,6 @@ canvas.addEventListener('mouseup', () => {
         currentLine = null;
         isDrawing = false;
     }
-    toolPreview = createToolPreview(isThin);
     drawingChanged();
 });
 
@@ -170,8 +221,8 @@ clearButton.addEventListener('click', () => {
 
 undoButton.addEventListener('click', () => {
     if (displayList.length > 0) {
-        const lastLine = displayList.pop()!;
-        redoList.push(lastLine);
+        const lastElement = displayList.pop()!;
+        redoList.push(lastElement);
         drawingChanged();
     }
 });
@@ -186,17 +237,15 @@ redoButton.addEventListener('click', () => {
 thinButton.addEventListener('click', () => {
     isThin = true;
     toolPreview = createToolPreview(true);
-    if (!isDrawing) {
-        drawingChanged()
-    };
+    currentSticker = null;  
+    if (!isDrawing) drawingChanged();
 });
 
 thickButton.addEventListener('click', () => {
     isThin = false;
-    toolPreview = createToolPreview(false); 
-    if (!isDrawing) {
-        drawingChanged()
-    };
+    toolPreview = createToolPreview(false);
+    currentSticker = null; 
+    if (!isDrawing) drawingChanged();
 });
 
 function drawingChanged() {
@@ -204,8 +253,8 @@ function drawingChanged() {
     ctx.fillStyle = 'lightgrey';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    displayList.forEach((line) => {
-        line.display(ctx);
+    displayList.forEach((element) => {
+        element.display(ctx);
     });
 
     if (currentLine) {
@@ -214,5 +263,9 @@ function drawingChanged() {
 
     if (toolPreview && !isDrawing) {
         toolPreview.display(ctx);
+    }
+
+    if (currentSticker) {
+        currentSticker.display(ctx);
     }
 }
