@@ -82,10 +82,10 @@ function createToolPreview(isThin: boolean): Sticker {
         },
         display(ctx: CanvasRenderingContext2D) {
             ctx.save();
-            ctx.globalAlpha = 0.5;  // Optional transparency for previews
+            ctx.globalAlpha = 0.5;  
             ctx.fillStyle = 'gray';
             ctx.beginPath();
-            const radius = isThin ? 3 : 8;  // Small circle for thin, larger circle for thick
+            const radius = isThin ? 3 : 8; 
             ctx.arc(x, y, radius, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
