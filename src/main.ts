@@ -5,7 +5,7 @@ const APP_NAME = "Raul's D2";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 document.title = APP_NAME;
 
-const gameName = "Raul's D2";
+const gameName = "Raul's Drawing Program";
 
 const header = document.createElement("h1");
 header.innerHTML = gameName;
@@ -17,7 +17,7 @@ canvas.height = 256;
 const ctx = canvas.getContext('2d')!;
 
 const clearButton = document.createElement('button');
-clearButton.innerHTML = 'Clear';
+clearButton.innerHTML = 'Clear Canvas';
 app.append(clearButton);
 
 const undoButton = document.createElement('button');
@@ -28,13 +28,16 @@ const redoButton = document.createElement('button');
 redoButton.innerHTML = 'Redo';
 app.append(redoButton);
 
+const drawingContainer = document.createElement('div');
+app.append(drawingContainer);
+
 const thinButton = document.createElement('button');
-thinButton.innerHTML = 'Thin';
-app.append(thinButton);
+thinButton.innerHTML = 'Pencil';
+drawingContainer.append(thinButton);
 
 const thickButton = document.createElement('button');
-thickButton.innerHTML = 'Thick';
-app.append(thickButton);
+thickButton.innerHTML = 'Marker';
+drawingContainer.append(thickButton);
 
 const stickerContainer = document.createElement('div');
 app.append(stickerContainer);
@@ -48,7 +51,7 @@ function createStickerButton(sticker: string) {
     stickerContainer.append(button);
 }
 
-const stickers = ['😀', '🌟', '🍉'];
+const stickers = ['😈', '👻', '🎃'];
 stickers.forEach(createStickerButton);
 
 const customStickerButton = document.createElement('button');
@@ -142,7 +145,7 @@ function selectSticker(sticker: string) {
 
 function createMarkerLine(initialX: number, initialY: number, isThin: boolean): MarkerLine {
     const points: { x: number; y: number }[] = [{ x: initialX, y: initialY }];
-    const lineWidth = isThin ? 1 : 5;
+    const lineWidth = isThin ? 1 : 4;
 
     return {
         lineWidth,
