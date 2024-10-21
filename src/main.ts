@@ -39,15 +39,30 @@ app.append(thickButton);
 const stickerContainer = document.createElement('div');
 app.append(stickerContainer);
 
-const stickers = ['😀', '🌟', '🍉'];
-stickers.forEach((sticker) => {
+function createStickerButton(sticker: string) {
     const button = document.createElement('button');
     button.innerHTML = sticker;
     button.addEventListener('click', () => {
         selectSticker(sticker);
     });
     stickerContainer.append(button);
+}
+
+const stickers = ['😀', '🌟', '🍉'];
+stickers.forEach(createStickerButton);
+
+const customStickerButton = document.createElement('button');
+customStickerButton.innerHTML = 'Create Sticker';
+app.append(customStickerButton);
+
+customStickerButton.addEventListener('click', () => {
+    const enteredText = prompt('Enter emoji to use as sticker') || '';
+    if (enteredText.trim()) { 
+        createStickerButton(enteredText);
+    }
 });
+
+
 
 let isThin = true;
 
