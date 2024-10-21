@@ -284,3 +284,22 @@ function drawingChanged() {
         currentSticker.display(ctx);
     }
 }
+
+const exportRow = document.createElement('div');
+app.append(exportRow);
+const exportButton = document.createElement('button');
+exportButton.innerHTML = 'Export';
+exportRow.append(exportButton);
+
+exportButton.addEventListener('click', () => {
+    const exportCanvas = document.createElement('canvas');
+    const  exportCtx = exportCanvas.getContext('2d')!;
+    exportCanvas.width = canvas.width * 4;
+    exportCanvas.height = canvas.height * 4; 
+    exportCtx.scale(4, 4);
+    exportCtx.drawImage(canvas, 0, 0);
+    const anchor = document.createElement("a");
+    anchor.href = canvas.toDataURL("image/png");
+    anchor.download = "sketchpad.png";
+    anchor.click()
+}); 
