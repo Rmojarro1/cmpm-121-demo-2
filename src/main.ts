@@ -16,6 +16,11 @@ canvas.width = 256;
 canvas.height = 256;
 const ctx = canvas.getContext('2d')!;
 
+const canvasContainer = document.createElement('div');
+canvasContainer.id = 'canvasContainer';
+canvasContainer.append(document.getElementById('canvas')!);
+app.append(canvasContainer);
+
 const clearButton = document.createElement('button');
 clearButton.innerHTML = 'Clear Canvas';
 app.append(clearButton);
