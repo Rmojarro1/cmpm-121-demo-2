@@ -39,6 +39,36 @@ const thickButton = document.createElement('button');
 thickButton.innerHTML = 'Marker';
 drawingContainer.append(thickButton);
 
+const colorSlider = document.createElement('input');
+colorSlider.type = 'range'; 
+colorSlider.min = '0'; 
+colorSlider.max = '360';
+colorSlider.value = '0';
+colorSlider.id = 'colorPicker';
+app.append(colorSlider);
+const colorLable = document.createElement('label');
+colorLable.innerHTML = 'Marker Color';
+colorLable.htmlFor = 'colorPicker';
+
+const colorPreview = document.createElement('div');
+colorPreview.style.width = '50px';
+colorPreview.style.height = '50px';
+colorPreview.style.border = '1px solid black';
+colorPreview.style.display = 'inline-block';
+colorPreview.style.marginLeft = '10px';
+app.append(colorLable, colorSlider, colorPreview);
+
+let currentMarkerColor = `hsl(${colorSlider.value}, 100%, 50%)`;
+colorPreview.style.backgroundColor = currentMarkerColor;
+colorSlider.addEventListener('input', () => {
+    const hue = parseInt(colorSlider.value);
+    currentMarkerColor = `hsl(${hue}, 100%, 50%)`;
+    colorPreview.style.backgroundColor = currentMarkerColor;
+}); 
+
+
+
+
 const stickerContainer = document.createElement('div');
 app.append(stickerContainer);
 
@@ -68,8 +98,8 @@ customStickerButton.addEventListener('click', () => {
 
 
 let isThin = true;
-const thinMarkerColor = 'black';
-const thickMarkerColor = 'red';
+/*const thinMarkerColor = 'black';
+const thickMarkerColor = 'red';*/
 
 interface Point {
     x: number;
@@ -177,6 +207,12 @@ const redoList: Displayable[] = [];
 let currentLine: MarkerLine | null = null;
 let toolPreview: Sticker | null = createToolPreview(isThin);
 
+
+
+
+
+
+
 if (ctx) {
     ctx.shadowColor = 'grey';
     ctx.shadowBlur = 50;
@@ -197,8 +233,7 @@ canvas.addEventListener('mousedown', (event) => {
     } else {
         const drawX = event.offsetX;
         const drawY = event.offsetY;
-        const color = isThin ? thinMarkerColor : thickMarkerColor;
-        currentLine = createMarkerLine(drawX, drawY, isThin, color);
+        currentLine = createMarkerLine(drawX, drawY, isThin, currentMarkerColor);
         isDrawing = true;
     }
 });
