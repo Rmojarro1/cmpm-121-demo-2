@@ -68,6 +68,8 @@ customStickerButton.addEventListener('click', () => {
 
 
 let isThin = true;
+const thinMarkerColor = 'black';
+const thickMarkerColor = 'red';
 
 interface Point {
     x: number;
@@ -81,11 +83,12 @@ interface Displayable {
 interface MarkerLine extends Displayable {
     drag(x: number, y: number): void;
     lineWidth: number;
+    color: string;
 }
 
 interface Sticker extends Displayable {
     updatePosition(x: number, y: number): void;
-    sticker: string;
+    sticker: string; 
 }
 
 function createToolPreview(isThin: boolean): Sticker {
@@ -143,15 +146,17 @@ function selectSticker(sticker: string) {
     canvas.dispatchEvent(toolMovedEvent);
 }
 
-function createMarkerLine(initialX: number, initialY: number, isThin: boolean): MarkerLine {
+function createMarkerLine(initialX: number, initialY: number, isThin: boolean, color: string): MarkerLine {
     const points: { x: number; y: number }[] = [{ x: initialX, y: initialY }];
     const lineWidth = isThin ? 1 : 4;
 
     return {
         lineWidth,
+        color,
         display(context: CanvasRenderingContext2D): void {
             if (points.length < 2) return;
             context.lineWidth = this.lineWidth;
+            context.strokeStyle = this.color;
             context.beginPath();
             context.moveTo(points[0].x, points[0].y);
 
@@ -192,7 +197,8 @@ canvas.addEventListener('mousedown', (event) => {
     } else {
         const drawX = event.offsetX;
         const drawY = event.offsetY;
-        currentLine = createMarkerLine(drawX, drawY, isThin);
+        const color = isThin ? thinMarkerColor : thickMarkerColor;
+        currentLine = createMarkerLine(drawX, drawY, isThin, color);
         isDrawing = true;
     }
 });
