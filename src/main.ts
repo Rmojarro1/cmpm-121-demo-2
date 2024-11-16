@@ -11,96 +11,98 @@ const header = document.createElement("h1");
 header.innerHTML = gameName;
 app.append(header);
 
-const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 canvas.width = 256;
 canvas.height = 256;
-const ctx = canvas.getContext('2d')!;
+const ctx = canvas.getContext("2d")!;
 
-const canvasContainer = document.createElement('div');
-canvasContainer.id = 'canvasContainer';
-canvasContainer.append(document.getElementById('canvas')!);
+const canvasContainer = document.createElement("div");
+canvasContainer.id = "canvasContainer";
+canvasContainer.append(document.getElementById("canvas")!);
 app.append(canvasContainer);
 
-const clearButton = document.createElement('button');
-clearButton.innerHTML = 'Clear Canvas';
+const clearButton = document.createElement("button");
+clearButton.innerHTML = "Clear Canvas";
 app.append(clearButton);
 
-const undoButton = document.createElement('button');
-undoButton.innerHTML = 'Undo';
+const undoButton = document.createElement("button");
+undoButton.innerHTML = "Undo";
 app.append(undoButton);
 
-const redoButton = document.createElement('button');
-redoButton.innerHTML = 'Redo';
+const redoButton = document.createElement("button");
+redoButton.innerHTML = "Redo";
 app.append(redoButton);
 
-const drawingContainer = document.createElement('div');
+const drawingContainer = document.createElement("div");
 app.append(drawingContainer);
 
-const thinButton = document.createElement('button');
-thinButton.innerHTML = 'Pencil';
+const thinButton = document.createElement("button");
+thinButton.innerHTML = "Pencil";
 drawingContainer.append(thinButton);
 
-const thickButton = document.createElement('button');
-thickButton.innerHTML = 'Marker';
+const thickButton = document.createElement("button");
+thickButton.innerHTML = "Marker";
 drawingContainer.append(thickButton);
 
-const colorSlider = document.createElement('input');
-colorSlider.type = 'range'; 
-colorSlider.min = '0'; 
-colorSlider.max = '360';
-colorSlider.value = '0';
-colorSlider.id = 'colorPicker';
+const colorSlider = document.createElement("input");
+colorSlider.type = "range";
+colorSlider.min = "0";
+colorSlider.max = "360";
+colorSlider.value = "0";
+colorSlider.id = "colorPicker";
 app.append(colorSlider);
-const colorLable = document.createElement('label');
-colorLable.innerHTML = 'Marker Color';
-colorLable.htmlFor = 'colorPicker';
+const colorLable = document.createElement("label");
+colorLable.innerHTML = "Marker Color";
+colorLable.htmlFor = "colorPicker";
 
-const colorPreview = document.createElement('div');
-colorPreview.style.width = '50px';
-colorPreview.style.height = '50px';
-colorPreview.style.border = '1px solid black';
-colorPreview.style.display = 'inline-block';
-colorPreview.style.marginLeft = '10px';
+const colorPreview = document.createElement("div");
+colorPreview.style.width = "50px";
+colorPreview.style.height = "50px";
+colorPreview.style.border = "1px solid black";
+colorPreview.style.display = "inline-block";
+colorPreview.style.marginLeft = "10px";
 app.append(colorLable, colorSlider, colorPreview);
 
 let currentMarkerColor = `hsl(${colorSlider.value}, 100%, 50%)`;
 colorPreview.style.backgroundColor = currentMarkerColor;
-colorSlider.addEventListener('input', () => {
+colorSlider.addEventListener("input", () => {
     const hue = parseInt(colorSlider.value);
     currentMarkerColor = `hsl(${hue}, 100%, 50%)`;
     colorPreview.style.backgroundColor = currentMarkerColor;
-}); 
+});
 
+// Returns the true origin of a sticker given its location and size
+function calculateStickerOrigin(x: number, y: number, size: number) {
+    const offsetX = size / -1.5;
+    const offsetY = size / 3;
+    return { x: x + offsetX, y: y + offsetY };
+}
 
-
-
-const stickerContainer = document.createElement('div');
+const stickerContainer = document.createElement("div");
 app.append(stickerContainer);
 
 function createStickerButton(sticker: string) {
-    const button = document.createElement('button');
+    const button = document.createElement("button");
     button.innerHTML = sticker;
-    button.addEventListener('click', () => {
+    button.addEventListener("click", () => {
         selectSticker(sticker);
     });
     stickerContainer.append(button);
 }
 
-const stickers = ['😈', '👻', '🎃'];
+const stickers = ["😈", "👻", "🎃"];
 stickers.forEach(createStickerButton);
 
-const customStickerButton = document.createElement('button');
-customStickerButton.innerHTML = 'Create Sticker';
+const customStickerButton = document.createElement("button");
+customStickerButton.innerHTML = "Create Sticker";
 app.append(customStickerButton);
 
-customStickerButton.addEventListener('click', () => {
-    const enteredText = prompt('Enter emoji to use as sticker') || '';
-    if (enteredText.trim()) { 
+customStickerButton.addEventListener("click", () => {
+    const enteredText = prompt("Enter emoji to use as sticker") || "";
+    if (enteredText.trim()) {
         createStickerButton(enteredText);
     }
 });
-
-
 
 let isThin = true;
 /*const thinMarkerColor = 'black';
@@ -123,7 +125,7 @@ interface MarkerLine extends Displayable {
 
 interface Sticker extends Displayable {
     updatePosition(x: number, y: number): void;
-    sticker: string; 
+    sticker: string;
 }
 
 function createToolPreview(isThin: boolean): Sticker {
@@ -131,25 +133,29 @@ function createToolPreview(isThin: boolean): Sticker {
     let y = 0;
 
     return {
-        sticker: '',
+        sticker: "",
         updatePosition(newX: number, newY: number) {
             x = newX;
             y = newY;
         },
         display(ctx: CanvasRenderingContext2D) {
             ctx.save();
-            ctx.globalAlpha = 0.5;  
-            ctx.fillStyle = 'gray';
+            ctx.globalAlpha = 0.5;
+            ctx.fillStyle = "gray";
             ctx.beginPath();
-            const radius = isThin ? 3 : 8; 
+            const radius = isThin ? 3 : 8;
             ctx.arc(x, y, radius, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
-        }
+        },
     };
 }
 
-function createStickerCommand(sticker: string, initialX: number, initialY: number): Sticker {
+function createStickerCommand(
+    sticker: string,
+    initialX: number,
+    initialY: number,
+): Sticker {
     let x = initialX;
     let y = initialY;
 
@@ -163,9 +169,10 @@ function createStickerCommand(sticker: string, initialX: number, initialY: numbe
         display(ctx: CanvasRenderingContext2D) {
             ctx.save();
             ctx.font = "24px Arial";
-            ctx.fillText(sticker, x, y);
+            const origin = calculateStickerOrigin(x, y, 24);
+            ctx.fillText(sticker, origin.x, origin.y);
             ctx.restore();
-        }
+        },
     };
 }
 
@@ -174,14 +181,19 @@ let stickerPlacement: Sticker | null = null;
 
 function selectSticker(sticker: string) {
     currentSticker = createStickerCommand(sticker, 0, 0);
-    toolPreview = null;  
+    toolPreview = null;
     if (!isDrawing) drawingChanged();
 
-    const toolMovedEvent = new Event('tool-moved');
+    const toolMovedEvent = new Event("tool-moved");
     canvas.dispatchEvent(toolMovedEvent);
 }
 
-function createMarkerLine(initialX: number, initialY: number, isThin: boolean, color: string): MarkerLine {
+function createMarkerLine(
+    initialX: number,
+    initialY: number,
+    isThin: boolean,
+    color: string,
+): MarkerLine {
     const points: { x: number; y: number }[] = [{ x: initialX, y: initialY }];
     const lineWidth = isThin ? 1 : 4;
 
@@ -203,7 +215,7 @@ function createMarkerLine(initialX: number, initialY: number, isThin: boolean, c
         },
         drag(x: number, y: number): void {
             points.push({ x, y });
-        }
+        },
     };
 }
 
@@ -212,38 +224,41 @@ const redoList: Displayable[] = [];
 let currentLine: MarkerLine | null = null;
 let toolPreview: Sticker | null = createToolPreview(isThin);
 
-
-
-
-
-
-
 if (ctx) {
-    ctx.shadowColor = 'grey';
+    ctx.shadowColor = "grey";
     ctx.shadowBlur = 50;
     ctx.shadowOffsetX = -5;
     ctx.shadowOffsetY = 5;
 
-    ctx.fillStyle = 'lightgrey';
+    ctx.fillStyle = "lightgrey";
     ctx.fillRect(0, 0, 250, 250);
 }
 
 let isDrawing = false;
 
-canvas.addEventListener('mousedown', (event) => {
+canvas.addEventListener("mousedown", (event) => {
     if (currentSticker) {
-        stickerPlacement = createStickerCommand(currentSticker.sticker, event.offsetX, event.offsetY);
+        stickerPlacement = createStickerCommand(
+            currentSticker.sticker,
+            event.offsetX,
+            event.offsetY,
+        );
         displayList.push(stickerPlacement);
         drawingChanged();
     } else {
         const drawX = event.offsetX;
         const drawY = event.offsetY;
-        currentLine = createMarkerLine(drawX, drawY, isThin, currentMarkerColor);
+        currentLine = createMarkerLine(
+            drawX,
+            drawY,
+            isThin,
+            currentMarkerColor,
+        );
         isDrawing = true;
     }
 });
 
-canvas.addEventListener('mousemove', (event) => {
+canvas.addEventListener("mousemove", (event) => {
     if (isDrawing && currentLine) {
         const newX = event.offsetX;
         const newY = event.offsetY;
@@ -258,7 +273,7 @@ canvas.addEventListener('mousemove', (event) => {
     }
 });
 
-canvas.addEventListener('mouseup', () => {
+canvas.addEventListener("mouseup", () => {
     if (isDrawing && currentLine) {
         displayList.push(currentLine);
         currentLine = null;
@@ -267,7 +282,7 @@ canvas.addEventListener('mouseup', () => {
     drawingChanged();
 });
 
-canvas.addEventListener('mouseleave', () => {
+canvas.addEventListener("mouseleave", () => {
     if (isDrawing && currentLine) {
         displayList.push(currentLine);
         currentLine = null;
@@ -275,15 +290,15 @@ canvas.addEventListener('mouseleave', () => {
     }
 });
 
-clearButton.addEventListener('click', () => {
+clearButton.addEventListener("click", () => {
     ctx.clearRect(0, 0, 250, 250);
-    ctx.fillStyle = 'lightgrey';
+    ctx.fillStyle = "lightgrey";
     ctx.fillRect(0, 0, 250, 250);
     displayList.length = 0;
     drawingChanged();
 });
 
-undoButton.addEventListener('click', () => {
+undoButton.addEventListener("click", () => {
     if (displayList.length > 0) {
         const lastElement = displayList.pop()!;
         redoList.push(lastElement);
@@ -291,30 +306,30 @@ undoButton.addEventListener('click', () => {
     }
 });
 
-redoButton.addEventListener('click', () => {
+redoButton.addEventListener("click", () => {
     if (redoList.length > 0) {
         displayList.push(redoList.pop()!);
         drawingChanged();
     }
 });
 
-thinButton.addEventListener('click', () => {
+thinButton.addEventListener("click", () => {
     isThin = true;
     toolPreview = createToolPreview(true);
-    currentSticker = null;  
+    currentSticker = null;
     if (!isDrawing) drawingChanged();
 });
 
-thickButton.addEventListener('click', () => {
+thickButton.addEventListener("click", () => {
     isThin = false;
     toolPreview = createToolPreview(false);
-    currentSticker = null; 
+    currentSticker = null;
     if (!isDrawing) drawingChanged();
 });
 
 function drawingChanged() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'lightgrey';
+    ctx.fillStyle = "lightgrey";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     displayList.forEach((element) => {
@@ -334,21 +349,21 @@ function drawingChanged() {
     }
 }
 
-const exportRow = document.createElement('div');
+const exportRow = document.createElement("div");
 app.append(exportRow);
-const exportButton = document.createElement('button');
-exportButton.innerHTML = 'Export';
+const exportButton = document.createElement("button");
+exportButton.innerHTML = "Export";
 exportRow.append(exportButton);
 
-exportButton.addEventListener('click', () => {
-    const exportCanvas = document.createElement('canvas');
-    const  exportCtx = exportCanvas.getContext('2d')!;
+exportButton.addEventListener("click", () => {
+    const exportCanvas = document.createElement("canvas");
+    const exportCtx = exportCanvas.getContext("2d")!;
     exportCanvas.width = canvas.width * 4;
-    exportCanvas.height = canvas.height * 4; 
+    exportCanvas.height = canvas.height * 4;
     exportCtx.scale(4, 4);
     exportCtx.drawImage(canvas, 0, 0);
     const anchor = document.createElement("a");
     anchor.href = canvas.toDataURL("image/png");
     anchor.download = "sketchpad.png";
-    anchor.click()
-}); 
+    anchor.click();
+});
