@@ -11,9 +11,14 @@ const header = document.createElement("h1");
 header.innerHTML = gameName;
 app.append(header);
 
+
+const CANVAS_WIDTH = 256;
+const CANVAS_HEIGHT = 256;
+const EXPORT_SCALE = 4;
+
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-canvas.width = 256;
-canvas.height = 256;
+canvas.width = CANVAS_WIDTH;
+canvas.height = CANVAS_HEIGHT;
 const ctx = canvas.getContext("2d")!;
 
 const canvasContainer = document.createElement("div");
@@ -21,28 +26,45 @@ canvasContainer.id = "canvasContainer";
 canvasContainer.append(document.getElementById("canvas")!);
 app.append(canvasContainer);
 
-const clearButton = document.createElement("button");
-clearButton.innerHTML = "Clear Canvas";
-app.append(clearButton);
+createButton("Clear Canvas", () => {
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.fillStyle = "lightgrey";
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    displayList.length = 0;
+    drawingChanged();
+});
 
-const undoButton = document.createElement("button");
-undoButton.innerHTML = "Undo";
-app.append(undoButton);
+createButton("Undo", () => {
+    if (displayList.length > 0) {
+        const lastElement = displayList.pop()!;
+        redoList.push(lastElement);
+        drawingChanged();
+    }
+});
 
-const redoButton = document.createElement("button");
-redoButton.innerHTML = "Redo";
-app.append(redoButton);
+createButton("Redo", () => {
+    if (redoList.length > 0) {
+        displayList.push(redoList.pop()!);
+        drawingChanged();
+    }
+});
 
 const drawingContainer = document.createElement("div");
 app.append(drawingContainer);
 
-const thinButton = document.createElement("button");
-thinButton.innerHTML = "Pencil";
-drawingContainer.append(thinButton);
+createButton("Pencil", () => {
+    isThin = true;
+    toolPreview = createToolPreview(true);
+    currentSticker = null;
+    if (!isDrawing) drawingChanged();
+}, drawingContainer);
 
-const thickButton = document.createElement("button");
-thickButton.innerHTML = "Marker";
-drawingContainer.append(thickButton);
+createButton("Marker", () => {
+    isThin = false;
+    toolPreview = createToolPreview(false);
+    currentSticker = null;
+    if (!isDrawing) drawingChanged();
+}, drawingContainer);
 
 const colorSlider = document.createElement("input");
 colorSlider.type = "range";
@@ -70,6 +92,20 @@ colorSlider.addEventListener("input", () => {
     currentMarkerColor = `hsl(${hue}, 100%, 50%)`;
     colorPreview.style.backgroundColor = currentMarkerColor;
 });
+
+
+
+function createButton(
+    label: string, 
+    onClick: () => void, 
+    parent: HTMLElement = app
+): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.innerHTML = label;
+    button.addEventListener("click", onClick);
+    parent.append(button);
+    return button;
+}
 
 // Returns the true origin of a sticker given its location and size
 function calculateStickerOrigin(x: number, y: number, size: number) {
@@ -290,42 +326,6 @@ canvas.addEventListener("mouseleave", () => {
     }
 });
 
-clearButton.addEventListener("click", () => {
-    ctx.clearRect(0, 0, 250, 250);
-    ctx.fillStyle = "lightgrey";
-    ctx.fillRect(0, 0, 250, 250);
-    displayList.length = 0;
-    drawingChanged();
-});
-
-undoButton.addEventListener("click", () => {
-    if (displayList.length > 0) {
-        const lastElement = displayList.pop()!;
-        redoList.push(lastElement);
-        drawingChanged();
-    }
-});
-
-redoButton.addEventListener("click", () => {
-    if (redoList.length > 0) {
-        displayList.push(redoList.pop()!);
-        drawingChanged();
-    }
-});
-
-thinButton.addEventListener("click", () => {
-    isThin = true;
-    toolPreview = createToolPreview(true);
-    currentSticker = null;
-    if (!isDrawing) drawingChanged();
-});
-
-thickButton.addEventListener("click", () => {
-    isThin = false;
-    toolPreview = createToolPreview(false);
-    currentSticker = null;
-    if (!isDrawing) drawingChanged();
-});
 
 function drawingChanged() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -351,19 +351,16 @@ function drawingChanged() {
 
 const exportRow = document.createElement("div");
 app.append(exportRow);
-const exportButton = document.createElement("button");
-exportButton.innerHTML = "Export";
-exportRow.append(exportButton);
 
-exportButton.addEventListener("click", () => {
+createButton("Export", () => {
     const exportCanvas = document.createElement("canvas");
     const exportCtx = exportCanvas.getContext("2d")!;
-    exportCanvas.width = canvas.width * 4;
-    exportCanvas.height = canvas.height * 4;
-    exportCtx.scale(4, 4);
+    exportCanvas.width = canvas.width * EXPORT_SCALE;
+    exportCanvas.height = canvas.height * EXPORT_SCALE;
+    exportCtx.scale(EXPORT_SCALE, EXPORT_SCALE);
     exportCtx.drawImage(canvas, 0, 0);
     const anchor = document.createElement("a");
-    anchor.href = canvas.toDataURL("image/png");
+    anchor.href = exportCanvas.toDataURL("image/png");
     anchor.download = "sketchpad.png";
     anchor.click();
-});
+}, exportRow);
